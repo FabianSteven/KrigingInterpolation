@@ -440,4 +440,17 @@ ggplot(vgm_Residuals, aes(x = dist, y = gamma)) +
                                    color="black") + scale_color_manual(name = "Theoretical Model", 
                                                                        values = c(Spherical= "blue", Exponential= "Red",Gaussian="green" )))
 
+#Modelo direccional Semivariograma
+
+# Direccional 135
+vgm_135dir_resid = variogram(g_trend,alpha=c(135),tol.hor=22.5,
+                             cutoff=30, width=15)
+plot(vgm_135dir_resid)
+
+
+#Esferico 135
+vgm_residual.fit_sph_135 = fit.variogram(vgm_135dir_resid, 
+                                         model = vgm(0.1,"Sph",100,0.5)) 
+vgm_residual.fit_sph_135
+plot(vgm_135dir_resid, vgm_residual.fit_sph_135, col="red")
 
