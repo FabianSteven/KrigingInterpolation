@@ -1,0 +1,318 @@
+library(gridExtra)
+require(devtools)
+require(gstat)
+require(sp)
+require(sf)
+require(ggplot2)
+require(rgeos)
+require(readxl)
+library(nortest)
+library(sp)
+library(raster)
+library(dismo)
+library(ggvoronoi)
+library(dplyr)
+library(scatterplot3d)
+library(rgl)
+
+#Visualizar la tabla
+View(Taxis)
+#Tipo de variable
+class(Taxis)
+#Se realiza un backup
+Adf=Taxis
+ndf=NTaxis
+ndf2=NTaxis
+#Tipo de variable
+class(Adf)
+class(ndf)
+#Visualizar el nombre de la columnas
+names(Adf)
+names(ndf)
+#Visualizar las 6 primeras filas de la tabla
+head(Adf)
+head(ndf)
+#Visualizar algunas estadisticas con als varibles del dataset
+summary(Adf)
+summary(ndf)
+#Distancias entre lso puntos
+quantile(dist(ndf[,1:2]))
+#Calcular el variograma
+apply(ndf,2,var)
+
+
+#Graficos de histogramas y frecuencia
+
+ggplot(ndf, aes(Localidad)) + 
+  geom_histogram(aes(), bins = 19, col=1, fill=8, alpha=.5) +
+  labs(x="Localidades [n]",y="Count", title = "Histograma", 
+       subtitle="Datos sin procesar") + 
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5,
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold")) +
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black"))
+
+ggplot(ndf, aes(Localidad)) + 
+  geom_vline(aes(xintercept = mean(Localidad), color="Mean"), linetype="dashed",
+             size=1) + 
+  geom_vline(aes(xintercept = median(Localidad), color="Median"), linetype="dashed",
+             size=1)+
+  geom_density(col="#FF6666", alpha=.2, fill="#FF6666") +
+  labs(x= 'Localidades', y='Densidad')+
+  scale_color_manual(name = "Estadisticas", values = c(Median = "green", 
+                                                     Mean = "blue"))+
+  labs(x="Localidades[n]",y="Densidad", title = "Curva de densidad", 
+       subtitle="Datos sin procesar, Media, Mediana") + 
+  theme(plot.title = element_text(face = "bold", size = 20,hjust =0.5, 
+                                  color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black"))
+
+
+
+#Q-Q Grafico
+
+ggplot(data=ndf, aes(sample=Localidad))+ stat_qq_line(col="red", size=1.2)+ stat_qq()+
+  labs(x="Teorico",y="Muesta", title = "Grafico Q-Q", 
+       subtitle="Datos sin procesar") + 
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black"))
+
+#prueba de normalidad
+#prueba Spahiro-Wilk
+
+shapiro.test(ndf$Localidad) 
+
+#prueba de kolmogorov-smirnov
+lillie.test(ndf$Localidad)
+
+#como el valor p es menor que 0.05 entonces podemos asumir que no hay una distribución normal, F :c
+
+#mapa de burbujas
+
+ggplot(Adf,aes(Longitud,Latitud)) + geom_point(aes(size=Día), color= "blue" ,alpha=.8) +
+  labs(x="Este",y="Norte", title = "Servicios aceptados por dia [m]") +
+  theme(plot.title = element_text(face = "bold", size = 20,hjust =0.5,
+                                  color = "black")) +
+  theme (axis.text = element_text(colour = "black",size =10, face = "bold"))
+
+
+# Mapa de Voronoi o polígonos de Thiessen
+
+coordinates(ndf2) = ~Longitud + Latitud
+class(ndf2)
+voronoi_map=voronoi(ndf2)
+plot(voronoi_map)
+points(ndf2, col="red", pch=19, bg= 21, cex=1, lwd=2)
+
+
+voranoi_map_ggplot = ggplot(ndf,aes(Longitud,Latitud)) + 
+  scale_fill_gradientn("Localidad", colors=c("seagreen","darkgreen","green1","yellow",
+                                      "gold4", "sienna"), values=scales::rescale(c(91,92,93,94,95,96))) + 
+  scale_color_gradientn("Localidad", colors=c("seagreen","darkgreen","green1","yellow",
+                                       "gold4", "sienna"), values=scales::rescale(c(91,92,93,94,95,96))) + 
+  labs(x="Este",y="Norte", title = "Mapa Voronoi")+ 
+  labs(x="Este",y="Norte", title = "Mapa Voronoi") + 
+  theme(plot.title = element_text( face = "bold", size = 20,hjust =0.5,  
+                                   color = "black")) + 
+  theme (axis.text = element_text(colour = "black", size =10, face = "bold"))
+
+
+voranoi_map_ggplot +
+  geom_voronoi(aes(fill=Localidad)) + geom_point(col="red")+ stat_voronoi(geom="path")
+
+
+# Análisis de la tendencia x Orientación, lineal, de segundo y tercer orden
+
+ggplot(ndf,aes(Longitud,Localidad)) + 
+  geom_smooth(method = "lm", formula= Latitud~Longitud,se=F,size=1.2, aes(colour="Linear")) + 
+  geom_smooth(method = "lm", formula = Latitud ~ poly(Longitud, 2), se = F, size=1.2,
+              aes(colour="Second_Order")) + 
+  geom_smooth(method = "lm", formula = Latitud ~ poly(Longitud, 3), se = F, size=1.2,
+              aes(colour="Third_Order")) +
+  scale_color_manual(name = "Regresion Type", values = c(Linear = "red", 
+                                                         Second_Order = "blue", Third_Order = "green4"))+
+  labs(x="Este [m]",y="Localidad [m]", title = "Gráfico de dispersión", 
+       subtitle="Localidad vs Longitud") + geom_point() +
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold")) +
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black")) 
+
+# Análisis de la tendencia y Northing, lineal, de segundo y tercer orden
+
+ggplot(ndf,aes(Latitud,Localidad)) + 
+  geom_smooth(method = "lm", formula= Latitud~Longitud,se=F,size=1.2, aes(colour="Linear")) + 
+  geom_smooth(method = "lm", formula = Latitud ~ poly(Longitud, 2), se = F, size=1.2,
+              aes(colour="Second_Order")) + 
+  geom_smooth(method = "lm", formula = Latitud ~ poly(Longitud, 3), se = F, size=1.2,
+              aes(colour="Third_Order")) +
+  scale_color_manual(name = "Regresion Type", values = c(Linear = "red", 
+                                                         Second_Order = "blue", Third_Order = "green4"))+
+  labs(x="Norte [m]",y="Localidad [m]", title = "Grafico de dispersión", 
+       subtitle="Localidad vs Latitud") + geom_point() +
+  theme(plot.title = element_text(face = "bold", 
+                                  size = 20,hjust =0.5, color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold")) +
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black")) 
+
+
+#Modelo 3d
+
+scatterplot3d(ndf$Longitud,ndf$Latitud,ndf$Localidad, xlab="Este",
+              ylab="Norte", zlab="Localidad")
+
+plot3d(ndf$Longitud,ndf$Latitud,ndf$Localidad, xlab="Este",
+       ylab="Norte", zlab="Localidad", size=5, col="blue")
+
+
+vgm_cloud = (variogram(Localidad~1,data=ndf2,cutoff=30, cloud=T))
+?variogram
+plot(vgm_cloud)
+View(vgm_cloud)
+class(vgm_cloud)
+write.table(vgm_cloud, 
+            file="C:/Users/fagud/Downloads/kriging/cloud_points.xls", sep=",")
+?write.table
+
+#con ggplot
+
+
+ggplot(vgm_cloud,aes(x=dist,gamma)) + geom_point(colour = "blue", size = 1) +
+  labs(x="Distancia [m]",y="Gamma", title = "Semivariograma", 
+       subtitle="Datos sin procesar - nube semivariograma ") + 
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black"))
+
+
+sel = plot(variogram(Localidad~1, ndf2,cutoff=500, cloud = T),digitize = T)
+plot(sel, ndf2)
+ 
+
+g = gstat(id='Valor', formula=Localidad~1,data = ndf2) 
+vgm1 = variogram(g) 
+head(vgm1) 
+vgm1       
+plot(vgm1) 
+#vgm1 = variogram(g, cutoff=30, width=15)
+#vgm1 
+#plot(vgm1) 
+#View (vgm1)
+
+pair_count = ggplot(data = vgm1) +
+  geom_col(mapping = aes(x = dist, y = np), width = 0.01, color = "blue") +
+  labs(x="Distancia [m]",y="Numero de puntos") + 
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black")) +
+  geom_hline(aes(yintercept = var(ndf$Localidad), color="Variance"), linetype="dashed",
+             size=1) +
+  scale_color_manual(name = "Statistics", values = c(Variance = "red"))
+plot(pair_count) 
+
+
+# la línea de varianza con ggplot 
+
+Semivario1= ggplot(vgm1,aes(x=dist,gamma)) + geom_point(colour = "blue", size = 1) +
+  labs(x="Distancia [m]",y="Gamma", title = "Semivariograma", 
+       subtitle="Datos sin procesar - Semivariograma omnidireccional") + 
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black")) +
+  geom_hline(aes(yintercept = var(ndf$Localidad), color="Variance"), linetype="dashed",
+             size=1) +
+  scale_color_manual(name = "Statistics", values = c(Variance = "red"))
+plot(Semivario1)
+
+
+
+
+grid.arrange(Semivario1, pair_count, ncol = 1, heights = c(3, 1))
+
+
+#Semivariograma direccional
+
+# Semivariograma direccional para la nube de semivariogramas
+
+plot(variogram(Valor~1,ndf2,cutoff=30,alpha=0, tol.hor=22.5, width=15, cloud=T))
+?variogram
+# Semivariograma direccional para el semivariograma experimental
+
+vgm2 = variogram(g,alpha=c(0,45,90,135),tol.hor=22.5,cutoff=30,width=15)
+plot(vgm2)
+
+# con ggplot
+
+ggplot(vgm2,aes(x=dist,y=gamma,col=factor(dir.hor),shape=factor(dir.hor))) +
+  geom_point(size=2) +
+  geom_line() +
+  labs(x="Distancia [m]",y="Gamma", title = "Semivariograma", 
+       subtitle="Datos sin procesar - Semivariograma direccional",col="atzimut",shape='') +
+  geom_hline(aes(yintercept = var(ndf2$Valor), color="Variance"), linetype="dashed",
+             size=1) + 
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black"))
+
+#Variografía
+
+# El mapa del variograma nos ayuda a identificar la anisotropía 
+
+map.vgm = variogram(g, width=15, cutoff=30,map=TRUE)
+plot(map.vgm)
+
+# Mapa de variogramas con ggplot
+
+ggplot(data.frame(map.vgm),aes(x=map.dx,y=map.dy,fill=map.Localidad)) +
+  geom_raster() +
+  scale_fill_gradientn(colours= topo.colors(10)) +
+  labs(x="Este-Oeste",y="Norte-Sur", title = "Mapa de Varigramas",
+       subtitle="Datos sin procesar - Semivariograma omnidireccional", fill="semivariance")+ 
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black"))
+
+
+#Eliminación de la tendencia de los datos
+
+# Nube de residuos para una tendencia lineal ~x+y (polinomio de primer orden)
+vgm_residual_cloud = (variogram(Valor~Longitud+Latitud,ndf2,cutoff=30, cloud=T)) 
+plot(vgm_residual_cloud)
+
+# Nube de residuos con ggplot
+
+ggplot(vgm_residual_cloud,aes(x=dist,gamma)) + 
+  geom_point(colour = "blue", size = 1) +
+  labs(x="Distancia [m]",y="Gamma", title = "Semivariograma", 
+       subtitle="semivariograma Nube residual") + 
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black"))
+
+#Varianza en los residuos para añadir al gráfico
+
+model_1 = lm(Valor~Longitud+Latitud, data=ndf)
+ndf$predicted_1 = predict(model_1)
+ndf$residuals_1 = residuals(model_1)
+
+var(ndf$residuals_1)
