@@ -485,3 +485,53 @@ cross_validation_sph_135 =
 summary(cross_validation_sph_135)
 summary(cross_validation_sph_135$residual)
 class(cross_validation_sph)
+
+cross_validation_exp_2 = krige.cv(Valor ~ Longitud+Latitud, locations = ndf2,
+                                  model = vgm_residual.fit_exp)%>%st_as_sf()
+class(cross_validation_exp_2)
+View(cross_validation_exp_2)
+
+#graficas
+
+ggplot(as.data.frame(cross_validation_exp), aes(observed,var1.pred)) +
+  coord_fixed() + geom_abline(slope=1, col="red",size=1.2) +
+  geom_smooth(method = "lm", formula= y~x,size=1.2, col="black", se=F)+
+  geom_point(col = "blue") +
+  labs(x="observado", y="predecido", title = "Validacion cruzada") +
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5,
+                                   color = "black")) +
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic",
+                                   color="black"))
+
+ggplot(as.data.frame(cross_validation_exp), aes(residual)) +
+  geom_histogram(bins = 10, col=1, fill="grey") +
+  labs( x="residual", y= "frecuencia", title = "Histograma",
+        subtitle = "Valores residuales") + geom_vline(xintercept=0, col=2)+
+  theme(plot.title = element_text(face = "bold", size = 20,hjust =0.5,
+                                  color = "black")) +
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic",
+                                   color="black"))
+
+ggplot(as.data.frame(cross_validation_exp), aes(observed,residual)) +
+  coord_fixed() + geom_abline(slope=1, col="red",size=1.2) +
+  geom_smooth(method = "lm", formula= y~x,size=1.2, col="black", se=F)+
+  geom_point(col = "blue") +
+  labs(x="observado", y="residual", title = "Residual Vs Observado") +
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5,
+                                   color = "black")) +
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic",
+                                   color="black"))
+
+ggplot(data=cross_validation_exp_2, aes(sample=residual))+ stat_qq_line(col="red", size=1.2)+ stat_qq()+
+  labs(x="Teorico",y="muestra", title = "Grafico Q-Q ", 
+       subtitle="") + 
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black"))
+
+
