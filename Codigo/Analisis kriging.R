@@ -473,3 +473,8 @@ cross_validation_exp =
 summary(cross_validation_exp$residual)
 class(cross_validation_exp)
 
+# validación cruzada gaussiana omnidireccional
+cross_validation_gau = 
+  krige.cv(Valor ~ Longitud+Latitud, locations = ndf2, model = vgm_residual.fit_gau2)
+summary(cross_validation_gau$residual)
+class(cross_validation_gau)
