@@ -478,3 +478,10 @@ cross_validation_gau =
   krige.cv(Valor ~ Longitud+Latitud, locations = ndf2, model = vgm_residual.fit_gau2)
 summary(cross_validation_gau$residual)
 class(cross_validation_gau)
+
+# validación cruzada esférica  grados 
+cross_validation_sph_135 = 
+  krige.cv(Valor ~ Longitud+Latitud, locations = ndf2, model = vgm_residual.fit_sph_135)
+summary(cross_validation_sph_135)
+summary(cross_validation_sph_135$residual)
+class(cross_validation_sph)
