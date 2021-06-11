@@ -465,3 +465,11 @@ summary(cross_validation_sph)
 summary(cross_validation_sph$residual)
 class(cross_validation_sph)
 View(cross_validation_sph)
+
+
+# validación cruzada exponencial omnidireccional
+cross_validation_exp = 
+  krige.cv(Valor ~ Longitud+Latitud, locations = ndf2, model = vgm_residual.fit_exp)
+summary(cross_validation_exp$residual)
+class(cross_validation_exp)
+
