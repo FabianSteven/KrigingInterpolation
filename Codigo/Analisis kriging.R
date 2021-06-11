@@ -454,3 +454,14 @@ vgm_residual.fit_sph_135 = fit.variogram(vgm_135dir_resid,
 vgm_residual.fit_sph_135
 plot(vgm_135dir_resid, vgm_residual.fit_sph_135, col="red")
 
+
+#Validación cruzada
+
+# validación cruzada esférica omnidireccional
+
+cross_validation_sph = 
+  krige.cv(Valor ~ Longitud+Latitud, locations = ndf2, model = vgm_residual.fit_sph)
+summary(cross_validation_sph)
+summary(cross_validation_sph$residual)
+class(cross_validation_sph)
+View(cross_validation_sph)
