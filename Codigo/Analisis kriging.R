@@ -376,5 +376,68 @@ ggplot(data.frame(map.vgm.resid),aes(x=map.dx,y=map.dy,fill=map.Valor)) +
   theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
                                    color="black"))
 
+#Modelo Semivariograma
+
+#"Exp" (Un modelo exponencial)
+#"Sph" (Un modelo esférico)
+#"Gau" (Un modelo gaussiano)
+#"Bes" (Un modelo de Bessel)
+
+# Orden de los parámetros para la función fit.variogram: sill, model, range y nugget
+
+# Esférico
+vgm_residual.fit_sph = fit.variogram(vgm_Residuals, 
+                                     model = vgm(0.1,"Sph",100,0.5)) 
+vgm_residual.fit_sph
+plot(vgm_Residuals, vgm_residual.fit_sph)
+
+# Exponencial
+vgm_residual.fit_exp = fit.variogram(vgm_Residuals, 
+                                     model = vgm(0.1,"Exp",100,0.5)) 
+vgm_residual.fit_exp
+plot(vgm_Residuals, vgm_residual.fit_exp)
+
+# Gaussiano
+vgm_residual.fit_gau = fit.variogram(vgm_Residuals, 
+                                     model = vgm(0.1,"Gau",100,0.5)) 
+
+vgm_residual.fit_gau2 = vgm(psill=0.17,model="Gau",range=40,nugget=0)
+plot(vgm_Residuals, vgm_residual.fit_gau2)
+
+# Bessel
+vgm_residual.fit_bes = fit.variogram(vgm_Residuals, 
+                                     model = vgm(0.1,"Bes",100,0.5)) 
+vgm_residual.fit_bes
+plot(vgm_Residuals, vgm_residual.fit_bes)
+
+fit.variogram(vgm_Residuals, vgm(c("Exp", "Bes", "Sph")))
+
+
+model_shp = variogramLine(vgm_residual.fit_sph, maxdist = max(vgm_Residuals$dist))
+head(model_shp)
+
+model_exp = variogramLine(vgm_residual.fit_exp, maxdist = max(vgm_Residuals$dist))
+head(model_exp)
+
+model_gau2 = variogramLine(vgm_residual.fit_gau2, maxdist = max(vgm_Residuals$dist))
+head(model_gau2)
+
+#ggplot
+
+ggplot(vgm_Residuals, aes(x = dist, y = gamma)) +
+  geom_point(size=2) +
+  geom_line(data = model_shp, linetype="solid", aes(color= "Spherical"), size=0.8)+
+  geom_line(data = model_exp, linetype="dashed", aes(color= "Exponential"), size=0.8)+
+  geom_line(data = model_gau2, linetype="twodash", aes(color= "Gaussian"), size=0.8)+
+  labs(x="Distancia [m]",y="Gamma", title = "Modelo Semivariograma ", 
+       subtitle="Modelo esférico, exponencial y gaussiano ajustado en el semivariograma residual omnidireccional
+       ",
+       col="Model",shape='')+
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black") + scale_color_manual(name = "Theoretical Model", 
+                                                                       values = c(Spherical= "blue", Exponential= "Red",Gaussian="green" )))
 
 
