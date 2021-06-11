@@ -316,3 +316,65 @@ ndf$predicted_1 = predict(model_1)
 ndf$residuals_1 = residuals(model_1)
 
 var(ndf$residuals_1)
+
+# Semivariograma experimental omnidireccional de los residuos
+
+g_trend = gstat(id='Valor', formula=Valor~Longitud+Latitud,data = ndf2) #objeto gstat 
+
+vgm_Residuals = variogram(g_trend, cutoff=30, width=5)
+plot(vgm_Residuals) 
+
+#linea de varianza
+
+ggplot(vgm_Residuals,aes(x=dist,gamma)) + geom_point(colour = "blue", size = 1) +
+  labs(x="Distancia [m]",y="Gamma", title = "Semivariograma", 
+       subtitle=" Semivariograma omnidireccional de residuos") + 
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black")) +
+  geom_hline(aes(yintercept = var(ndf$residuals_1), color="Variance"), linetype="dashed",
+             size=1) +
+  scale_color_manual(name = "Statistics", values = c(Variance = "red")) 
+
+# Semivariograma residual 4 direcciones diferentes
+
+vgm_4dir_resid = variogram(g_trend,alpha=c(0,45,90,135),tol.hor=22.5,
+                           cutoff=30, width=15)
+plot(vgm_4dir_resid)
+
+
+ggplot(vgm_4dir_resid,aes(x=dist,y=gamma,col=factor(dir.hor),
+                          shape=factor(dir.hor))) + geom_point(size=2) + geom_line() +
+  labs(x="Distancia [m]",y="Gamma", title = "Semivariograma", 
+       subtitle="Semivariograma direccional residual",
+       col="atzimut",shape='') +
+  geom_hline(aes(yintercept = var(ndf$residuals_1), color="Variance"), 
+             linetype="dashed",size=1) + 
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black"))
+
+#Mapa de variograma residual - Nos ayuda a identificar la anisotropía 
+
+map.vgm.resid = variogram(g_trend, width=15, cutoff=30,map=TRUE)
+plot(map.vgm.resid)
+
+
+ggplot(data.frame(map.vgm.resid),aes(x=map.dx,y=map.dy,fill=map.Valor)) +
+  geom_raster() +
+  scale_fill_gradientn(colours= topo.colors(10)) +
+  labs(x="Este-Oeste",y="Norte-Sur", title = "Mapa de Variograma",
+       subtitle="Semivariograma residual omnidireccional", 
+       fill="semivariancia")+ 
+  theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
+                                   color = "black")) + 
+  theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
+  theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
+                                   color="black"))
+
+
+
