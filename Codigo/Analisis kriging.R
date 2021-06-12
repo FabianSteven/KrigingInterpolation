@@ -14,6 +14,7 @@ library(ggvoronoi)
 library(dplyr)
 library(scatterplot3d)
 library(rgl)
+require(nortest)
 
 #Visualizar la tabla
 View(tabla1_mod)
@@ -21,9 +22,13 @@ View(tabla1_mod)
 #Tipo de variable
 class(tabla1_mod)
 #Se realiza un backup
-Adf=tabla1_mod
+
 ndf=tabla1_mod
-ndf2=tabla1_mod
+ndf <- filter(ndf, ndf$IDCIUDAD == "11001")
+ndf <- ndf[!is.na(ndf$COSTO),]
+ndf2=ndf
+#Adf=filter(tabla1_mod, tabla1_mod$IDCIUDAD == "11001")
+
 #Tipo de variable
 
 class(ndf)
@@ -36,10 +41,10 @@ head(ndf)
 #Visualizar algunas estadisticas con als varibles del dataset
 summary(ndf)
 #Distancias entre lso puntos
-ndf <- filter(ndf, ndf$IDCIUDAD == "11001")
-quantile(dist(ndf[,11,9]))
-quantile(dist(tabla1[,22,24]))
 
+quantile(dist(ndf[,11,9]))
+
+quantile(dist(tabla2_mod[,11,9]))
 
 #Calcular el variograma
 apply(ndf,2,var)
@@ -50,12 +55,15 @@ apply(ndf,2,var)
 ggplot(ndf, aes(COSTO)) + 
   geom_histogram(aes(), bins = 19, col=1, fill=8, alpha=.5) +
   labs(x="COSTO [n]",y="Count", title = "Histograma", 
-       subtitle="Datos sin procesar") + 
+       subtitle="") + 
   theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5,
                                    color = "black")) + 
   theme(axis.text = element_text(colour = "black", size =10, face = "bold")) +
   theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
                                    color="black"))
+
+
+
 
 ggplot(ndf, aes(COSTO)) + 
   geom_vline(aes(xintercept = mean(COSTO), color="Mean"), linetype="dashed",
@@ -67,7 +75,7 @@ ggplot(ndf, aes(COSTO)) +
   scale_color_manual(name = "Estadisticas", values = c(Median = "green", 
                                                      Mean = "blue"))+
   labs(x="COSTO[n]",y="Densidad", title = "Curva de densidad", 
-       subtitle="Datos sin procesar, Media, Mediana") + 
+       subtitle=", Media, Mediana") + 
   theme(plot.title = element_text(face = "bold", size = 20,hjust =0.5, 
                                   color = "black")) + 
   theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
@@ -80,7 +88,7 @@ ggplot(ndf, aes(COSTO)) +
 
 ggplot(data=ndf, aes(sample=COSTO))+ stat_qq_line(col="red", size=1.2)+ stat_qq()+
   labs(x="Teorico",y="Muesta", title = "Grafico Q-Q", 
-       subtitle="Datos sin procesar") + 
+       subtitle="") + 
   theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
                                    color = "black")) + 
   theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
@@ -95,19 +103,19 @@ shapiro.test(ndf$COSTO)
 #prueba de kolmogorov-smirnov
 lillie.test(ndf$COSTO)
 
+
 #como el COSTO p es menor que 0.05 entonces podemos asumir que no hay una distribución normal, F :c
 
 #mapa de burbujas
 
-ggplot(ndf,aes(LONGITUD,LATITUD)) + geom_point(aes(size=LOCALIDAD), color= "blue" ,alpha=.8) +
-  labs(x="Este",y="Norte", title = "Servicios aceptados por dia [m]") +
+ggplot(Adf,aes(LONGITUD,LATITUD)) + geom_point(aes(size=LOCALIDAD), color= "blue" ,alpha=.8) +
+  labs(x="Este",y="Norte", title = "Servicios aceptados por Localidad [m]") +
   theme(plot.title = element_text(face = "bold", size = 20,hjust =0.5,
                                   color = "black")) +
   theme (axis.text = element_text(colour = "black",size =10, face = "bold"))
 
 
 # Mapa de Voronoi o polígonos de Thiessen
-
 coordinates(ndf2) = ~LONGITUD + LATITUD
 class(ndf2)
 voronoi_map=voronoi(ndf2)
@@ -115,11 +123,24 @@ voronoi_map
 plot(voronoi_map)
 points(ndf2, col="red", pch=19, bg= 21, cex=1, lwd=2)
 
+tabla1_mod =Adf
+tabla1_mod = filter(tabla1_mod,tabla1_mod$IDCIUDAD=="11001")
 
-voranoi_map_ggplot = ggplot(ndf,aes(LONGITUD,LATITUD)) + 
-  scale_fill_gradientn("COSTO", colors=c("seagreen","darkgreen","green1","yellow",
+coordinates(tabla1_mod) = ~LONGITUD + LATITUD
+class(tabla1_mod)
+voronoi_map2=voronoi(tabla1_mod)
+voronoi_map2
+plot(voronoi_map2)
+points(tabla1_mod, col="red", pch=19, bg= 21, cex=1, lwd=2)
+
+
+#Adf=Adf[!duplicated(Adf$LATITUD), ]
+#Adf=Adf[!duplicated(Adf$LONGITUD), ]
+
+voranoi_map_ggplot = ggplot(Adf,aes(LONGITUD,LATITUD)) + 
+  scale_fill_gradientn("LOCALIDAD", colors=c("seagreen","darkgreen","green1","yellow",
                                       "gold4", "sienna"), values=scales::rescale(c(91,92,93,94,95,96))) + 
-  scale_color_gradientn("COSTO", colors=c("seagreen","darkgreen","green1","yellow",
+  scale_color_gradientn("LOCALIDAD", colors=c("seagreen","darkgreen","green1","yellow",
                                        "gold4", "sienna"), values=scales::rescale(c(91,92,93,94,95,96))) + 
   labs(x="Este",y="Norte", title = "Mapa Voronoi")+ 
   labs(x="Este",y="Norte", title = "Mapa Voronoi") + 
@@ -129,7 +150,7 @@ voranoi_map_ggplot = ggplot(ndf,aes(LONGITUD,LATITUD)) +
 
 
 voranoi_map_ggplot +
-  geom_voronoi(aes(fill=COSTO)) + geom_point(col="red")+ stat_voronoi(geom="path")
+  geom_voronoi(aes(fill=LOCALIDAD)) + geom_point(col="red")+ stat_voronoi(geom="path")
 
 
 # Análisis de la tendencia x Orientación, lineal, de segundo y tercer orden
@@ -178,21 +199,21 @@ plot3d(ndf$LONGITUD,ndf$LATITUD,ndf$COSTO, xlab="Este",
        ylab="Norte", zlab="COSTO", size=5, col="blue")
 
 
-vgm_cloud = (variogram(COSTO~1,data=ndf2,cutoff=30, cloud=T))
-?variogram
+vgm_cloud = (variogram(COSTO~1,data=ndf2,cutoff=0.17, cloud=T))
+#?variogram
 plot(vgm_cloud)
 View(vgm_cloud)
 class(vgm_cloud)
 write.table(vgm_cloud, 
-            file="C:/Users/fagud/Downloads/kriging/cloud_points.xls", sep=",")
-?write.table
+            file="C:/Users/fagud/Documents/Proyectos/Taxis libres/Datasetscloud_points.xls", sep=",")
+#?write.table
 
 #con ggplot
 
 
 ggplot(vgm_cloud,aes(x=dist,gamma)) + geom_point(colour = "blue", size = 1) +
   labs(x="Distancia [m]",y="Gamma", title = "Semivariograma", 
-       subtitle="Datos sin procesar - nube semivariograma ") + 
+       subtitle=" - nube semivariograma ") + 
   theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
                                    color = "black")) + 
   theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
@@ -200,7 +221,7 @@ ggplot(vgm_cloud,aes(x=dist,gamma)) + geom_point(colour = "blue", size = 1) +
                                    color="black"))
 
 
-sel = plot(variogram(COSTO~1, ndf2,cutoff=500, cloud = T),digitize = T)
+sel = plot(variogram(COSTO~1, ndf2,cutoff=0.17, cloud = T),digitize = T)
 plot(sel, ndf2)
  
 
@@ -215,7 +236,7 @@ plot(vgm1)
 #View (vgm1)
 
 pair_count = ggplot(data = vgm1) +
-  geom_col(mapping = aes(x = dist, y = np), width = 0.01, color = "blue") +
+  geom_col(mapping = aes(x = dist, y = np), width = 0.17, color = "blue") +
   labs(x="Distancia [m]",y="Numero de puntos") + 
   theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
                                    color = "black")) + 
@@ -232,7 +253,7 @@ plot(pair_count)
 
 Semivario1= ggplot(vgm1,aes(x=dist,gamma)) + geom_point(colour = "blue", size = 1) +
   labs(x="Distancia [m]",y="Gamma", title = "Semivariograma", 
-       subtitle="Datos sin procesar - Semivariograma omnidireccional") + 
+       subtitle=" - Semivariograma omnidireccional") + 
   theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
                                    color = "black")) + 
   theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
@@ -266,7 +287,7 @@ ggplot(vgm2,aes(x=dist,y=gamma,col=factor(dir.hor),shape=factor(dir.hor))) +
   geom_point(size=2) +
   geom_line() +
   labs(x="Distancia [m]",y="Gamma", title = "Semivariograma", 
-       subtitle="Datos sin procesar - Semivariograma direccional",col="atzimut",shape='') +
+       subtitle=" - Semivariograma direccional",col="atzimut",shape='') +
   geom_hline(aes(yintercept = var(ndf2$COSTO), color="Variance"), linetype="dashed",
              size=1) + 
   theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
@@ -288,7 +309,7 @@ ggplot(data.frame(map.vgm),aes(x=map.dx,y=map.dy,fill=map.COSTO)) +
   geom_raster() +
   scale_fill_gradientn(colours= topo.colors(10)) +
   labs(x="Este-Oeste",y="Norte-Sur", title = "Mapa de Varigramas",
-       subtitle="Datos sin procesar - Semivariograma omnidireccional", fill="semivariance")+ 
+       subtitle=" - Semivariograma omnidireccional", fill="semivariance")+ 
   theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
                                    color = "black")) + 
   theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
