@@ -16,36 +16,40 @@ library(scatterplot3d)
 library(rgl)
 
 #Visualizar la tabla
-View(Taxis)
+View(tabla1_mod)
+
 #Tipo de variable
-class(Taxis)
+class(tabla1_mod)
 #Se realiza un backup
-Adf=Taxis
-ndf=NTaxis
-ndf2=NTaxis
+Adf=tabla1_mod
+ndf=tabla1_mod
+ndf2=tabla1_mod
 #Tipo de variable
-class(Adf)
+
 class(ndf)
 #Visualizar el nombre de la columnas
-names(Adf)
+
 names(ndf)
 #Visualizar las 6 primeras filas de la tabla
-head(Adf)
+
 head(ndf)
 #Visualizar algunas estadisticas con als varibles del dataset
-summary(Adf)
 summary(ndf)
 #Distancias entre lso puntos
-quantile(dist(ndf[,1:2]))
+ndf <- filter(ndf, ndf$IDCIUDAD == "11001")
+quantile(dist(ndf[,11,9]))
+quantile(dist(tabla1[,22,24]))
+
+
 #Calcular el variograma
 apply(ndf,2,var)
 
 
 #Graficos de histogramas y frecuencia
 
-ggplot(ndf, aes(Localidad)) + 
+ggplot(ndf, aes(COSTO)) + 
   geom_histogram(aes(), bins = 19, col=1, fill=8, alpha=.5) +
-  labs(x="Localidades [n]",y="Count", title = "Histograma", 
+  labs(x="COSTO [n]",y="Count", title = "Histograma", 
        subtitle="Datos sin procesar") + 
   theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5,
                                    color = "black")) + 
@@ -53,16 +57,16 @@ ggplot(ndf, aes(Localidad)) +
   theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
                                    color="black"))
 
-ggplot(ndf, aes(Localidad)) + 
-  geom_vline(aes(xintercept = mean(Localidad), color="Mean"), linetype="dashed",
+ggplot(ndf, aes(COSTO)) + 
+  geom_vline(aes(xintercept = mean(COSTO), color="Mean"), linetype="dashed",
              size=1) + 
-  geom_vline(aes(xintercept = median(Localidad), color="Median"), linetype="dashed",
+  geom_vline(aes(xintercept = median(COSTO), color="Median"), linetype="dashed",
              size=1)+
   geom_density(col="#FF6666", alpha=.2, fill="#FF6666") +
-  labs(x= 'Localidades', y='Densidad')+
+  labs(x= 'COSTO', y='Densidad')+
   scale_color_manual(name = "Estadisticas", values = c(Median = "green", 
                                                      Mean = "blue"))+
-  labs(x="Localidades[n]",y="Densidad", title = "Curva de densidad", 
+  labs(x="COSTO[n]",y="Densidad", title = "Curva de densidad", 
        subtitle="Datos sin procesar, Media, Mediana") + 
   theme(plot.title = element_text(face = "bold", size = 20,hjust =0.5, 
                                   color = "black")) + 
@@ -74,7 +78,7 @@ ggplot(ndf, aes(Localidad)) +
 
 #Q-Q Grafico
 
-ggplot(data=ndf, aes(sample=Localidad))+ stat_qq_line(col="red", size=1.2)+ stat_qq()+
+ggplot(data=ndf, aes(sample=COSTO))+ stat_qq_line(col="red", size=1.2)+ stat_qq()+
   labs(x="Teorico",y="Muesta", title = "Grafico Q-Q", 
        subtitle="Datos sin procesar") + 
   theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
@@ -86,16 +90,16 @@ ggplot(data=ndf, aes(sample=Localidad))+ stat_qq_line(col="red", size=1.2)+ stat
 #prueba de normalidad
 #prueba Spahiro-Wilk
 
-shapiro.test(ndf$Localidad) 
+shapiro.test(ndf$COSTO) 
 
 #prueba de kolmogorov-smirnov
-lillie.test(ndf$Localidad)
+lillie.test(ndf$COSTO)
 
-#como el valor p es menor que 0.05 entonces podemos asumir que no hay una distribución normal, F :c
+#como el COSTO p es menor que 0.05 entonces podemos asumir que no hay una distribución normal, F :c
 
 #mapa de burbujas
 
-ggplot(Adf,aes(Longitud,Latitud)) + geom_point(aes(size=Día), color= "blue" ,alpha=.8) +
+ggplot(ndf,aes(LONGITUD,LATITUD)) + geom_point(aes(size=LOCALIDAD), color= "blue" ,alpha=.8) +
   labs(x="Este",y="Norte", title = "Servicios aceptados por dia [m]") +
   theme(plot.title = element_text(face = "bold", size = 20,hjust =0.5,
                                   color = "black")) +
@@ -104,17 +108,18 @@ ggplot(Adf,aes(Longitud,Latitud)) + geom_point(aes(size=Día), color= "blue" ,alp
 
 # Mapa de Voronoi o polígonos de Thiessen
 
-coordinates(ndf2) = ~Longitud + Latitud
+coordinates(ndf2) = ~LONGITUD + LATITUD
 class(ndf2)
 voronoi_map=voronoi(ndf2)
+voronoi_map
 plot(voronoi_map)
 points(ndf2, col="red", pch=19, bg= 21, cex=1, lwd=2)
 
 
-voranoi_map_ggplot = ggplot(ndf,aes(Longitud,Latitud)) + 
-  scale_fill_gradientn("Localidad", colors=c("seagreen","darkgreen","green1","yellow",
+voranoi_map_ggplot = ggplot(ndf,aes(LONGITUD,LATITUD)) + 
+  scale_fill_gradientn("COSTO", colors=c("seagreen","darkgreen","green1","yellow",
                                       "gold4", "sienna"), values=scales::rescale(c(91,92,93,94,95,96))) + 
-  scale_color_gradientn("Localidad", colors=c("seagreen","darkgreen","green1","yellow",
+  scale_color_gradientn("COSTO", colors=c("seagreen","darkgreen","green1","yellow",
                                        "gold4", "sienna"), values=scales::rescale(c(91,92,93,94,95,96))) + 
   labs(x="Este",y="Norte", title = "Mapa Voronoi")+ 
   labs(x="Este",y="Norte", title = "Mapa Voronoi") + 
@@ -124,21 +129,21 @@ voranoi_map_ggplot = ggplot(ndf,aes(Longitud,Latitud)) +
 
 
 voranoi_map_ggplot +
-  geom_voronoi(aes(fill=Localidad)) + geom_point(col="red")+ stat_voronoi(geom="path")
+  geom_voronoi(aes(fill=COSTO)) + geom_point(col="red")+ stat_voronoi(geom="path")
 
 
 # Análisis de la tendencia x Orientación, lineal, de segundo y tercer orden
 
-ggplot(ndf,aes(Longitud,Localidad)) + 
-  geom_smooth(method = "lm", formula= Latitud~Longitud,se=F,size=1.2, aes(colour="Linear")) + 
-  geom_smooth(method = "lm", formula = Latitud ~ poly(Longitud, 2), se = F, size=1.2,
+ggplot(ndf,aes(LONGITUD,COSTO)) + 
+  geom_smooth(method = "lm", formula= LATITUD~LONGITUD,se=F,size=1.2, aes(colour="Linear")) + 
+  geom_smooth(method = "lm", formula = LATITUD ~ poly(LONGITUD, 2), se = F, size=1.2,
               aes(colour="Second_Order")) + 
-  geom_smooth(method = "lm", formula = Latitud ~ poly(Longitud, 3), se = F, size=1.2,
+  geom_smooth(method = "lm", formula = LATITUD ~ poly(LONGITUD, 3), se = F, size=1.2,
               aes(colour="Third_Order")) +
   scale_color_manual(name = "Regresion Type", values = c(Linear = "red", 
                                                          Second_Order = "blue", Third_Order = "green4"))+
-  labs(x="Este [m]",y="Localidad [m]", title = "Gráfico de dispersión", 
-       subtitle="Localidad vs Longitud") + geom_point() +
+  labs(x="Este [m]",y="COSTO [m]", title = "Gráfico de dispersión", 
+       subtitle="COSTO vs LONGITUD") + geom_point() +
   theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
                                    color = "black")) + 
   theme(axis.text = element_text(colour = "black", size =10, face = "bold")) +
@@ -147,16 +152,16 @@ ggplot(ndf,aes(Longitud,Localidad)) +
 
 # Análisis de la tendencia y Northing, lineal, de segundo y tercer orden
 
-ggplot(ndf,aes(Latitud,Localidad)) + 
-  geom_smooth(method = "lm", formula= Latitud~Longitud,se=F,size=1.2, aes(colour="Linear")) + 
-  geom_smooth(method = "lm", formula = Latitud ~ poly(Longitud, 2), se = F, size=1.2,
+ggplot(ndf,aes(LATITUD,COSTO)) + 
+  geom_smooth(method = "lm", formula= LATITUD~LONGITUD,se=F,size=1.2, aes(colour="Linear")) + 
+  geom_smooth(method = "lm", formula = LATITUD ~ poly(LONGITUD, 2), se = F, size=1.2,
               aes(colour="Second_Order")) + 
-  geom_smooth(method = "lm", formula = Latitud ~ poly(Longitud, 3), se = F, size=1.2,
+  geom_smooth(method = "lm", formula = LATITUD ~ poly(LONGITUD, 3), se = F, size=1.2,
               aes(colour="Third_Order")) +
   scale_color_manual(name = "Regresion Type", values = c(Linear = "red", 
                                                          Second_Order = "blue", Third_Order = "green4"))+
-  labs(x="Norte [m]",y="Localidad [m]", title = "Grafico de dispersión", 
-       subtitle="Localidad vs Latitud") + geom_point() +
+  labs(x="Norte [m]",y="COSTO [m]", title = "Grafico de dispersión", 
+       subtitle="COSTO vs LATITUD") + geom_point() +
   theme(plot.title = element_text(face = "bold", 
                                   size = 20,hjust =0.5, color = "black")) + 
   theme(axis.text = element_text(colour = "black", size =10, face = "bold")) +
@@ -166,14 +171,14 @@ ggplot(ndf,aes(Latitud,Localidad)) +
 
 #Modelo 3d
 
-scatterplot3d(ndf$Longitud,ndf$Latitud,ndf$Localidad, xlab="Este",
-              ylab="Norte", zlab="Localidad")
+scatterplot3d(ndf$LONGITUD,ndf$LATITUD,ndf$COSTO, xlab="Este",
+              ylab="Norte", zlab="COSTO")
 
-plot3d(ndf$Longitud,ndf$Latitud,ndf$Localidad, xlab="Este",
-       ylab="Norte", zlab="Localidad", size=5, col="blue")
+plot3d(ndf$LONGITUD,ndf$LATITUD,ndf$COSTO, xlab="Este",
+       ylab="Norte", zlab="COSTO", size=5, col="blue")
 
 
-vgm_cloud = (variogram(Localidad~1,data=ndf2,cutoff=30, cloud=T))
+vgm_cloud = (variogram(COSTO~1,data=ndf2,cutoff=30, cloud=T))
 ?variogram
 plot(vgm_cloud)
 View(vgm_cloud)
@@ -195,11 +200,11 @@ ggplot(vgm_cloud,aes(x=dist,gamma)) + geom_point(colour = "blue", size = 1) +
                                    color="black"))
 
 
-sel = plot(variogram(Localidad~1, ndf2,cutoff=500, cloud = T),digitize = T)
+sel = plot(variogram(COSTO~1, ndf2,cutoff=500, cloud = T),digitize = T)
 plot(sel, ndf2)
  
 
-g = gstat(id='Valor', formula=Localidad~1,data = ndf2) 
+g = gstat(id='COSTO', formula=COSTO~1,data = ndf2) 
 vgm1 = variogram(g) 
 head(vgm1) 
 vgm1       
@@ -217,7 +222,7 @@ pair_count = ggplot(data = vgm1) +
   theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
   theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
                                    color="black")) +
-  geom_hline(aes(yintercept = var(ndf$Localidad), color="Variance"), linetype="dashed",
+  geom_hline(aes(yintercept = var(ndf$COSTO), color="Variance"), linetype="dashed",
              size=1) +
   scale_color_manual(name = "Statistics", values = c(Variance = "red"))
 plot(pair_count) 
@@ -233,7 +238,7 @@ Semivario1= ggplot(vgm1,aes(x=dist,gamma)) + geom_point(colour = "blue", size = 
   theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
   theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
                                    color="black")) +
-  geom_hline(aes(yintercept = var(ndf$Localidad), color="Variance"), linetype="dashed",
+  geom_hline(aes(yintercept = var(ndf$COSTO), color="Variance"), linetype="dashed",
              size=1) +
   scale_color_manual(name = "Statistics", values = c(Variance = "red"))
 plot(Semivario1)
@@ -248,7 +253,7 @@ grid.arrange(Semivario1, pair_count, ncol = 1, heights = c(3, 1))
 
 # Semivariograma direccional para la nube de semivariogramas
 
-plot(variogram(Valor~1,ndf2,cutoff=30,alpha=0, tol.hor=22.5, width=15, cloud=T))
+plot(variogram(COSTO~1,ndf2,cutoff=30,alpha=0, tol.hor=22.5, width=15, cloud=T))
 ?variogram
 # Semivariograma direccional para el semivariograma experimental
 
@@ -262,7 +267,7 @@ ggplot(vgm2,aes(x=dist,y=gamma,col=factor(dir.hor),shape=factor(dir.hor))) +
   geom_line() +
   labs(x="Distancia [m]",y="Gamma", title = "Semivariograma", 
        subtitle="Datos sin procesar - Semivariograma direccional",col="atzimut",shape='') +
-  geom_hline(aes(yintercept = var(ndf2$Valor), color="Variance"), linetype="dashed",
+  geom_hline(aes(yintercept = var(ndf2$COSTO), color="Variance"), linetype="dashed",
              size=1) + 
   theme(plot.title = element_text( face = "bold",size = 20,hjust =0.5, 
                                    color = "black")) + 
@@ -279,7 +284,7 @@ plot(map.vgm)
 
 # Mapa de variogramas con ggplot
 
-ggplot(data.frame(map.vgm),aes(x=map.dx,y=map.dy,fill=map.Localidad)) +
+ggplot(data.frame(map.vgm),aes(x=map.dx,y=map.dy,fill=map.COSTO)) +
   geom_raster() +
   scale_fill_gradientn(colours= topo.colors(10)) +
   labs(x="Este-Oeste",y="Norte-Sur", title = "Mapa de Varigramas",
@@ -294,7 +299,7 @@ ggplot(data.frame(map.vgm),aes(x=map.dx,y=map.dy,fill=map.Localidad)) +
 #Eliminación de la tendencia de los datos
 
 # Nube de residuos para una tendencia lineal ~x+y (polinomio de primer orden)
-vgm_residual_cloud = (variogram(Valor~Longitud+Latitud,ndf2,cutoff=30, cloud=T)) 
+vgm_residual_cloud = (variogram(COSTO~LONGITUD+LATITUD,ndf2,cutoff=30, cloud=T)) 
 plot(vgm_residual_cloud)
 
 # Nube de residuos con ggplot
@@ -311,7 +316,7 @@ ggplot(vgm_residual_cloud,aes(x=dist,gamma)) +
 
 #Varianza en los residuos para añadir al gráfico
 
-model_1 = lm(Valor~Longitud+Latitud, data=ndf)
+model_1 = lm(COSTO~LONGITUD+LATITUD, data=ndf)
 ndf$predicted_1 = predict(model_1)
 ndf$residuals_1 = residuals(model_1)
 
@@ -319,7 +324,7 @@ var(ndf$residuals_1)
 
 # Semivariograma experimental omnidireccional de los residuos
 
-g_trend = gstat(id='Valor', formula=Valor~Longitud+Latitud,data = ndf2) #objeto gstat 
+g_trend = gstat(id='COSTO', formula=COSTO~LONGITUD+LATITUD,data = ndf2) #objeto gstat 
 
 vgm_Residuals = variogram(g_trend, cutoff=30, width=5)
 plot(vgm_Residuals) 
@@ -364,7 +369,7 @@ map.vgm.resid = variogram(g_trend, width=15, cutoff=30,map=TRUE)
 plot(map.vgm.resid)
 
 
-ggplot(data.frame(map.vgm.resid),aes(x=map.dx,y=map.dy,fill=map.Valor)) +
+ggplot(data.frame(map.vgm.resid),aes(x=map.dx,y=map.dy,fill=map.COSTO)) +
   geom_raster() +
   scale_fill_gradientn(colours= topo.colors(10)) +
   labs(x="Este-Oeste",y="Norte-Sur", title = "Mapa de Variograma",
@@ -460,7 +465,7 @@ plot(vgm_135dir_resid, vgm_residual.fit_sph_135, col="red")
 # validación cruzada esférica omnidireccional
 
 cross_validation_sph = 
-  krige.cv(Valor ~ Longitud+Latitud, locations = ndf2, model = vgm_residual.fit_sph)
+  krige.cv(COSTO ~ LONGITUD+LATITUD, locations = ndf2, model = vgm_residual.fit_sph)
 summary(cross_validation_sph)
 summary(cross_validation_sph$residual)
 class(cross_validation_sph)
@@ -469,24 +474,24 @@ View(cross_validation_sph)
 
 # validación cruzada exponencial omnidireccional
 cross_validation_exp = 
-  krige.cv(Valor ~ Longitud+Latitud, locations = ndf2, model = vgm_residual.fit_exp)
+  krige.cv(COSTO ~ LONGITUD+LATITUD, locations = ndf2, model = vgm_residual.fit_exp)
 summary(cross_validation_exp$residual)
 class(cross_validation_exp)
 
 # validación cruzada gaussiana omnidireccional
 cross_validation_gau = 
-  krige.cv(Valor ~ Longitud+Latitud, locations = ndf2, model = vgm_residual.fit_gau2)
+  krige.cv(COSTO ~ LONGITUD+LATITUD, locations = ndf2, model = vgm_residual.fit_gau2)
 summary(cross_validation_gau$residual)
 class(cross_validation_gau)
 
 # validación cruzada esférica  grados 
 cross_validation_sph_135 = 
-  krige.cv(Valor ~ Longitud+Latitud, locations = ndf2, model = vgm_residual.fit_sph_135)
+  krige.cv(COSTO ~ LONGITUD+LATITUD, locations = ndf2, model = vgm_residual.fit_sph_135)
 summary(cross_validation_sph_135)
 summary(cross_validation_sph_135$residual)
 class(cross_validation_sph)
 
-cross_validation_exp_2 = krige.cv(Valor ~ Longitud+Latitud, locations = ndf2,
+cross_validation_exp_2 = krige.cv(COSTO ~ LONGITUD+LATITUD, locations = ndf2,
                                   model = vgm_residual.fit_exp)%>%st_as_sf()
 class(cross_validation_exp_2)
 View(cross_validation_exp_2)
@@ -507,7 +512,7 @@ ggplot(as.data.frame(cross_validation_exp), aes(observed,var1.pred)) +
 ggplot(as.data.frame(cross_validation_exp), aes(residual)) +
   geom_histogram(bins = 10, col=1, fill="grey") +
   labs( x="residual", y= "frecuencia", title = "Histograma",
-        subtitle = "Valores residuales") + geom_vline(xintercept=0, col=2)+
+        subtitle = "COSTOes residuales") + geom_vline(xintercept=0, col=2)+
   theme(plot.title = element_text(face = "bold", size = 20,hjust =0.5,
                                   color = "black")) +
   theme(axis.text = element_text(colour = "black", size =10, face = "bold"))+
@@ -534,4 +539,62 @@ ggplot(data=cross_validation_exp_2, aes(sample=residual))+ stat_qq_line(col="red
   theme(plot.subtitle=element_text(size=12, hjust=0.5, face="italic", 
                                    color="black"))
 
+# error cuadrático medio (RMSE)
 
+(UK.RMSE_shp=
+    sqrt(sum(cross_validation_sph$residual^2)/
+           (length(cross_validation_sph$residual))))
+
+(UK.RMSE_exp=
+    sqrt(sum(cross_validation_exp$residual^2)/
+           (length(cross_validation_exp$residual))))
+
+(UK.RMSE_gau=
+    sqrt(sum(cross_validation_gau$residual^2)/
+           (length(cross_validation_gau$residual))))
+
+(UK.RMSE_exp_2=
+    sqrt(sum(cross_validation_sph_135$residual^2)/
+           (length(cross_validation_sph_135$residual))))
+
+# diferencia entre lo observado y lo previsto
+bubble(cross_validation_exp, "residual", 
+       main = "Validación cruzada Residuales modelo exponecial")
+
+#creacion del grid
+library(rgdal)
+
+library(maptools)
+
+coordinates(ndf2)= ~ LONGITUD+LATITUD
+
+x.range_1<- as.numeric(c(-74.22278, -74.00357))
+
+y.range_1<- as.numeric(c(4.462181, 4.80202))
+
+
+grd = expand.grid(x = seq(from = x.range_1[1], to =x.range_1[2],by = 0.0078),
+                  y = seq(from = y.range_1[1], to =y.range_1[2],by = 0.008))
+
+coordinates(grd)= ~ x + y
+
+
+griddf=as.data.frame(grd)
+
+gridded(grd) = TRUE
+
+attach(ndf)
+
+library(rgdal)
+
+first_order = as.formula(COSTO ~ LONGITUD+ LATITUD )
+
+model1 = lm(first_order, data=ndf)
+
+fullgrid(grd) <- TRUE
+
+# kriging Universal
+
+# COSTOes predichos y varianza (error de interpolación)
+UK = krige(COSTO~LONGITUD+LATITUD, ndf2, grd, model=vgm_residual.fit_sph) 
+summary(UK)
